@@ -59,7 +59,7 @@ export default function CreateExpense({ createExpense }) {
             createExpense({
               category: expenseType,
               description: expenseDescription,
-              amount: expenseAnount,
+              expenseamount: expenseAnount,
             });
             setExpenseAmount(null);
             setExpenseDescription("");

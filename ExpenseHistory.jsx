@@ -23,7 +23,7 @@ export default function ExpenseHistoryTable({ data, deleteExpense }) {
               </td>
               <td>{d.category}</td>
               <td>{d.description}</td>
-              <td>₹{parseFloat(d.amount).toFixed(2)}</td>
+              <td>₹{parseFloat(d.expenseamount).toFixed(2)}</td>
               {!window.location.pathname.includes("/reports") ? (
                 <td>
                   <div className="btn">
