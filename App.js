@@ -10,11 +10,32 @@ import "../src/services/styles.css";
 
 export const API_BASE_URL = "http://localhost:3001";
 
-{
+//decode jwt
+function parseJwt(tk) {
+  var base64Url = tk.split(".")[1];
+  var base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  var jsonPayload = decodeURIComponent(
+    window
+      .atob(base64)
+      .split("")
+      .map(function (c) {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+      })
+      .join("")
+  );
+
+  return JSON.parse(jsonPayload);
 }
 
 const App = () => {
   const userId = localStorage.getItem("token");
+  let checkPremium;
+  if (userId) {
+    const decodeToken = parseJwt(userId);
+    console.log("decode", decodeToken);
+    checkPremium = decodeToken.ispremiumuser;
+  }
+
   return (
     <div className="App">
       <nav>
@@ -33,47 +54,7 @@ const App = () => {
             >
               Log out
             </NavLink>
-            <NavLink
-              className="link"
-              onClick={async (e) => {
-                const response = await axios.get(
-                  "http://localhost:3001/purchase/premiummembership",
-                  { headers: { Authorization: localStorage.getItem("token") } }
-                );
-                var options = {
-                  key: response.data.key_id,
-                  order_id: response.data.order.id,
-                  handler: async function (response) {
-                    await axios.post(
-                      "http://localhost:3001/purchase/updatetransactionstatus",
-                      {
-                        order_id: options.order_id,
-                        payment_id: response.razorpay_payment_id,
-                      },
-                      {
-                        headers: {
-                          Authorization: localStorage.getItem("token"),
-                        },
-                      }
-                    );
-                    alert("You are a premium user now");
-                  },
-                };
-                const rzp1 = new window.Razorpay(options);
-                rzp1.open();
-                e.preventDefault();
 
-                rzp1.on("payment-failed", function (response) {
-                  console.log(response);
-                  alert("Something went wrong");
-                });
-              }}
-              style={({ isActive }) => {
-                return isActive ? { color: "black", fontWeight: "bold" } : {};
-              }}
-            >
-              Buy Premium
-            </NavLink>
             <NavLink
               className="link"
               to="/reports"
@@ -92,6 +73,59 @@ const App = () => {
             >
               Home
             </NavLink>
+            {!checkPremium ? (
+              <NavLink
+                className="link"
+                onClick={async (e) => {
+                  const response = await axios.get(
+                    "http://localhost:3001/purchase/premiummembership",
+                    {
+                      headers: { Authorization: localStorage.getItem("token") },
+                    }
+                  );
+                  var options = {
+                    key: response.data.key_id,
+                    order_id: response.data.order.id,
+                    handler: async function (response) {
+                      await axios.post(
+                        "http://localhost:3001/purchase/updatetransactionstatus",
+                        {
+                          order_id: options.order_id,
+                          payment_id: response.razorpay_payment_id,
+                        },
+                        {
+                          headers: {
+                            Authorization: localStorage.getItem("token"),
+                          },
+                        }
+                      );
+                      // localStorage.setItem("premium", true);
+                      alert(
+                        "You are a premium user, please re-login to use features"
+                      );
+                      localStorage.removeItem("token");
+                      window.location.pathname = "/user/login";
+                    },
+                  };
+                  const rzp1 = new window.Razorpay(options);
+                  rzp1.open();
+                  e.preventDefault();
+
+                  rzp1.on("payment-failed", function (response) {
+                    console.log(response);
+                    alert("Something went wrong");
+                  });
+                }}
+                style={({ isActive }) => {
+                  return isActive ? { color: "black", fontWeight: "bold" } : {};
+                }}
+              >
+                Buy Premium
+              </NavLink>
+            ) : (
+              ""
+            )}
+            {checkPremium ? <NavLink className="link">Premium</NavLink> : ""}
           </>
         ) : (
           <>
