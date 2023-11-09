@@ -49,9 +49,9 @@ export default function Leaderboard() {
 
               <td>
                 ₹
-                {d.total_cost == null
+                {d.totalExpenses == null
                   ? "0.00"
-                  : parseFloat(d.total_cost).toFixed(2)}
+                  : parseFloat(d.totalExpenses).toFixed(2)}
               </td>
             </tr>
           ))}
